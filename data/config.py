@@ -47,4 +47,3 @@ class AppInput(Enum):
     # Main app input
     MAIN_MENU = auto()
     QUIT = auto()
-
