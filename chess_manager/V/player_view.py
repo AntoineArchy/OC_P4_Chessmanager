@@ -17,7 +17,7 @@ def see_player_as_line(player: player_model.PlayerM) -> str:
     Reçoit un objet joueur et en retourne une représentation en ligne suffisante pour l'identification du joueur
     dans une liste
     """
-    return f"{player.ine.upper()} : {player.last_name.upper()} {player.first_name.capitalize()}"
+    return f"{player.last_name.upper()} {player.first_name.capitalize()} ({player.ine.upper()})"
 
 
 def player_creation_form() -> Dict:
