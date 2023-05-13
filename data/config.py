@@ -10,6 +10,7 @@ class AppInput(Enum):
     LOAD_MATCH = auto()
     MATCH_FLAT_VIEW = auto()
     VIEW_MATCH_LIST = auto()
+    SET_MATCH_DRAW = auto()
     BACK_TO_MATCH_LIST = auto()
     SET_MATCH_ACTIV = auto()
     SET_MATCH_WINNER = auto()
