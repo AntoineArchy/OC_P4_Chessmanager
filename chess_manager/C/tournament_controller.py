@@ -2,12 +2,12 @@ from functools import partial
 from typing import Dict, Callable, List, Tuple
 
 from core import messenger, mainview, tinydb_loader
-from data.config import AppInput
+from data import config
 
 from chess_manager.M import tournament_model, player_model, turn_model
 from chess_manager.V import tournament_view
 
-DB_NAME = 'tournament'
+DB_NAME = config.TOURNAMENT_DB_NAME
 
 
 def _get_tournament_display(tournament: tournament_model.TournamentM) -> str:
@@ -32,23 +32,23 @@ class TournamentC:
         self.loader = loader
         self.app_messenger = app_messenger
 
-        app_messenger.register_call_event(AppInput.NEW_TOURNAMENT, self.create_new_tournament,
+        app_messenger.register_call_event(config.AppInput.NEW_TOURNAMENT, self.create_new_tournament,
                                           "Create new tournament")
-        app_messenger.register_call_event(AppInput.VIEW_TOURNAMENT_LIST, self.show_tournament_selection_list,
+        app_messenger.register_call_event(config.AppInput.VIEW_TOURNAMENT_LIST, self.show_tournament_selection_list,
                                           "View tournament listing")
-        app_messenger.register_call_event(AppInput.RESUME_TOURNAMENT, self.start_or_resume_tournament,
+        app_messenger.register_call_event(config.AppInput.RESUME_TOURNAMENT, self.start_or_resume_tournament,
                                           "Start / Resume tournament")
-        app_messenger.register_call_event(AppInput.SET_TOURNAMENT_ACTIV, self.set_tournament_as_active,
+        app_messenger.register_call_event(config.AppInput.SET_TOURNAMENT_ACTIV, self.set_tournament_as_active,
                                           "Back to tournament menu")
-        app_messenger.register_call_event(AppInput.BACK_TO_TOURNAMENT_LIST, self.show_tournament_selection_list,
+        app_messenger.register_call_event(config.AppInput.BACK_TO_TOURNAMENT_LIST, self.show_tournament_selection_list,
                                           "Back to tournament list")
-        app_messenger.register_call_event(AppInput.NEXT_TURN, self.go_to_next_turn,
+        app_messenger.register_call_event(config.AppInput.NEXT_TURN, self.go_to_next_turn,
                                           "Go to next turn")
-        app_messenger.register_call_event(AppInput.TOURNAMENT_RANKING, self.view_tournament_leaderboard,
+        app_messenger.register_call_event(config.AppInput.TOURNAMENT_RANKING, self.view_tournament_leaderboard,
                                           "View full tournament ranking")
-        app_messenger.register_call_event(AppInput.TOURNAMENT_DETAILS, self.view_tournament_details,
+        app_messenger.register_call_event(config.AppInput.TOURNAMENT_DETAILS, self.view_tournament_details,
                                           "View full tournament details")
-        app_messenger.register_call_event(AppInput.BACK_TO_TURN_LIST, self.switch_to_turn_control,
+        app_messenger.register_call_event(config.AppInput.BACK_TO_TURN_LIST, self.switch_to_turn_control,
                                           "Back to turn list")
 
     def save_tournament(self, tournament_obj: tournament_model.TournamentM) -> None:
@@ -77,25 +77,25 @@ class TournamentC:
 
         # Si on à tous les joueurs mais que le tournoi n'est pas terminé on permet à l'utilisateur de le reprendre
         if len(tournament_obj.players) == tournament_obj.player_nbr and not tournament_obj.is_finished:
-            self.app_messenger.accept_event(AppInput.RESUME_TOURNAMENT, event_arg=[tournament_obj])
+            self.app_messenger.accept_event(config.AppInput.RESUME_TOURNAMENT, event_arg=[tournament_obj])
 
         # Si le tournoi est terminé, impossible d'aller au tour suivant
         if tournament_obj.is_finished:
-            self.app_messenger.ignore_event(AppInput.NEXT_TURN)
+            self.app_messenger.ignore_event(config.AppInput.NEXT_TURN)
 
-        self.app_messenger.accept_event(AppInput.PLAYER_FLAT_VIEW)
+        self.app_messenger.accept_event(config.AppInput.PLAYER_FLAT_VIEW)
 
         # Si on à joué au moins un tour du tournois, on affiche le podium et autorise l'affichage des 'stats'.
         if tournament_obj.turn_list:
-            self.app_messenger.accept_event(AppInput.DISPLAY_TURN_RANKING)
-            self.app_messenger.send_event(AppInput.DISPLAY_TURN_RANKING, [tournament_obj.turn_list[-1], 3])
-            self.app_messenger.accept_event(AppInput.TOURNAMENT_DETAILS, [tournament_obj])
-            self.app_messenger.accept_event(AppInput.TOURNAMENT_RANKING, [tournament_obj])
+            self.app_messenger.accept_event(config.AppInput.DISPLAY_TURN_RANKING)
+            self.app_messenger.send_event(config.AppInput.DISPLAY_TURN_RANKING, [tournament_obj.turn_list[-1], 3])
+            self.app_messenger.accept_event(config.AppInput.TOURNAMENT_DETAILS, [tournament_obj])
+            self.app_messenger.accept_event(config.AppInput.TOURNAMENT_RANKING, [tournament_obj])
         # Quoi qu'il arrive,on permet la visualisation des joueurs et des fonctions basiques de l'application
-        self.app_messenger.accept_event(AppInput.VIEW_PLAYER_LIST, [tournament_obj.players])
-        self.app_messenger.accept_event(AppInput.BACK_TO_TOURNAMENT_LIST)
-        self.app_messenger.accept_event(AppInput.MAIN_MENU)
-        self.app_messenger.accept_event(AppInput.QUIT)
+        self.app_messenger.accept_event(config.AppInput.VIEW_PLAYER_LIST, [tournament_obj.players])
+        self.app_messenger.accept_event(config.AppInput.BACK_TO_TOURNAMENT_LIST)
+        self.app_messenger.accept_event(config.AppInput.MAIN_MENU)
+        self.app_messenger.accept_event(config.AppInput.QUIT)
 
     def update_available_p_list(self, tournament_obj: tournament_model.TournamentM) -> None:
         """
@@ -106,11 +106,11 @@ class TournamentC:
                     10, 0,
                     partial(self.add_player_to_tournament, tournament_obj=tournament_obj)]
 
-        add_to_this_tournament_func = self.app_messenger.update_event(AppInput.ADD_PLAYER,
+        add_to_this_tournament_func = self.app_messenger.update_event(config.AppInput.ADD_PLAYER,
                                                                       new_func_arg=new_args,
                                                                       make_copy=True)
 
-        self.app_messenger.accept_event(AppInput.ADD_PLAYER, call_event=add_to_this_tournament_func)
+        self.app_messenger.accept_event(config.AppInput.ADD_PLAYER, call_event=add_to_this_tournament_func)
 
     def create_new_tournament(self) -> None:
         """
@@ -136,14 +136,14 @@ class TournamentC:
         affiche le joueur, retourne au menu du tournoi si tous les joueurs sont présent sinon reste sur la page d'ajout
         de joueurs
         """
-        self.app_messenger.accept_event(AppInput.PLAYER_FLAT_VIEW)
+        self.app_messenger.accept_event(config.AppInput.PLAYER_FLAT_VIEW)
 
         if len(tournament_obj.players) >= tournament_obj.player_nbr:
             return
         tournament_obj.players.append(player_obj)
         self.display_tournament(tournament_obj)
 
-        player_event = self.app_messenger.send_event(AppInput.PLAYER_FLAT_VIEW, [player_obj])
+        player_event = self.app_messenger.send_event(config.AppInput.PLAYER_FLAT_VIEW, [player_obj])
         self.app_messenger.ignore_event(player_event)
         if len(tournament_obj.players) == tournament_obj.player_nbr:
             self.get_tournament_controls(tournament_obj)
@@ -164,24 +164,24 @@ class TournamentC:
         turn_list = list()
 
         if not partial_load:
-            self.app_messenger.accept_event(AppInput.LOAD_PLAYER)
-            self.app_messenger.accept_event(AppInput.LOAD_TURN)
-            self.app_messenger.accept_event(AppInput.NEW_MATCH)
+            self.app_messenger.accept_event(config.AppInput.LOAD_PLAYER)
+            self.app_messenger.accept_event(config.AppInput.LOAD_TURN)
+            self.app_messenger.accept_event(config.AppInput.NEW_MATCH)
 
             for player_id in tournament['players']:
-                player_list.append(self.app_messenger.send_event(AppInput.LOAD_PLAYER, [player_id]))
+                player_list.append(self.app_messenger.send_event(config.AppInput.LOAD_PLAYER, [player_id]))
 
             player_dict = {player.player_id: player for player in player_list}
             for turn_id in tournament['turn_list']:
                 match_list = list()
-                turn_obj = self.app_messenger.send_event(AppInput.LOAD_TURN, [turn_id])
+                turn_obj = self.app_messenger.send_event(config.AppInput.LOAD_TURN, [turn_id])
                 for match in turn_obj.match_list:
                     match_data = self.loader.load_match(match)
                     if not match_data:
                         continue
                     match_data['player_1'] = player_dict[match_data.get('player_1')]
                     match_data['player_2'] = player_dict[match_data.get('player_2')]
-                    match_list.append(self.app_messenger.send_event(AppInput.NEW_MATCH, [match_data]))
+                    match_list.append(self.app_messenger.send_event(config.AppInput.NEW_MATCH, [match_data]))
                 turn_obj.match_list = match_list
                 turn_is_finished = turn_obj.finished
                 turn_list.append(turn_obj)
@@ -200,7 +200,7 @@ class TournamentC:
         """
         for tournament in tournament_listing:
             tournament_str = tournament_view.tournament_object_flat_view(tournament)
-            updated_event_call = self.app_messenger.update_event(AppInput.SET_TOURNAMENT_ACTIV,
+            updated_event_call = self.app_messenger.update_event(config.AppInput.SET_TOURNAMENT_ACTIV,
                                                                  new_func=callback_func,
                                                                  new_str=tournament_str,
                                                                  make_copy=True)
@@ -218,9 +218,9 @@ class TournamentC:
         """
 
         self.main_view.menu_title = "## Tournament SELECTION ##"
-        self.app_messenger.accept_event(AppInput.NEW_MATCH)
-        self.app_messenger.accept_event(AppInput.LOAD_TURN)
-        self.app_messenger.accept_event(AppInput.LOAD_PLAYER)
+        self.app_messenger.accept_event(config.AppInput.NEW_MATCH)
+        self.app_messenger.accept_event(config.AppInput.LOAD_TURN)
+        self.app_messenger.accept_event(config.AppInput.LOAD_PLAYER)
 
         if excluded_id is None:
             excluded_id = list()
@@ -246,8 +246,8 @@ class TournamentC:
 
         self.add_temp_tournament_selection_event_to_messenger(tournament_listing, callback_func)
 
-        self.app_messenger.accept_event(AppInput.MAIN_MENU)
-        self.app_messenger.accept_event(AppInput.QUIT)
+        self.app_messenger.accept_event(config.AppInput.MAIN_MENU)
+        self.app_messenger.accept_event(config.AppInput.QUIT)
 
     def set_tournament_as_active(self, tournament_obj: tournament_model.TournamentM) -> None:
         """
@@ -272,7 +272,7 @@ class TournamentC:
         Affiche le tournoi et ses contrôle s'il est terminée,
         Affiche les contrôles du tour suivant si le tournoi est toujours en cours
         """
-        self.app_messenger.send_event(AppInput.END_TURN, [tournament_obj.turn_list[-1]])
+        self.app_messenger.send_event(config.AppInput.END_TURN, [tournament_obj.turn_list[-1]])
         next_turn = self.get_next_turn(tournament_obj)
         self.save_tournament(tournament_obj)
 
@@ -282,7 +282,7 @@ class TournamentC:
             self.get_tournament_controls(tournament_obj)
             return
 
-        self.app_messenger.send_event(AppInput.SET_TURN_ACTIV, [next_turn])
+        self.app_messenger.send_event(config.AppInput.SET_TURN_ACTIV, [next_turn])
 
     def get_next_turn(self, tournament: tournament_model.TournamentM) -> turn_model.TurnM | bool:
         """
@@ -299,16 +299,17 @@ class TournamentC:
         if not players_pair_list:
             return False
 
-        self.app_messenger.accept_event(AppInput.NEW_TURN)
-        self.app_messenger.accept_event(AppInput.NEW_MATCH)
+        self.app_messenger.accept_event(config.AppInput.NEW_TURN)
+        self.app_messenger.accept_event(config.AppInput.NEW_MATCH)
 
-        next_turn = self.app_messenger.send_event(AppInput.NEW_TURN, [{"name": f'Round{len(tournament.turn_list)}',
-                                                                       "player_pair": players_pair_list}])
+        next_turn = self.app_messenger.send_event(config.AppInput.NEW_TURN,
+                                                  [{"name": f'Round{len(tournament.turn_list)}',
+                                                    "player_pair": players_pair_list}])
 
-        for match in next_turn.match_list:
-            match.match_id = self.loader.save_match(match.get_save_data())
+        # for match in next_turn.match_list:
+        #     match.match_id = self.loader.save_match(match.get_save_data())
 
-        self.app_messenger.send_event(AppInput.END_TURN, [tournament.turn_list[-1]])
+        self.app_messenger.send_event(config.AppInput.END_TURN, [tournament.turn_list[-1]])
         tournament.register_turn(next_turn)
         self.save_tournament(tournament)
         return next_turn
@@ -322,15 +323,15 @@ class TournamentC:
         """
         self.app_messenger.ignore_all()
 
-        self.app_messenger.update_event(AppInput.NEXT_TURN, new_func_arg=[tournament])
-        self.app_messenger.update_event(AppInput.BACK_TO_TURN_LIST, new_func_arg=[tournament])
+        self.app_messenger.update_event(config.AppInput.NEXT_TURN, new_func_arg=[tournament])
+        self.app_messenger.update_event(config.AppInput.BACK_TO_TURN_LIST, new_func_arg=[tournament])
 
-        self.app_messenger.accept_event(AppInput.VIEW_TURN_LIST)
-        self.app_messenger.accept_event(AppInput.SET_TOURNAMENT_ACTIV, [tournament])
-        self.app_messenger.accept_event(AppInput.MAIN_MENU)
-        self.app_messenger.accept_event(AppInput.QUIT)
+        self.app_messenger.accept_event(config.AppInput.VIEW_TURN_LIST)
+        self.app_messenger.accept_event(config.AppInput.SET_TOURNAMENT_ACTIV, [tournament])
+        self.app_messenger.accept_event(config.AppInput.MAIN_MENU)
+        self.app_messenger.accept_event(config.AppInput.QUIT)
 
-        self.app_messenger.send_event(AppInput.VIEW_TURN_LIST, [tournament.turn_list, None, finished])
+        self.app_messenger.send_event(config.AppInput.VIEW_TURN_LIST, [tournament.turn_list, None, finished])
 
     def resume_tournament(self, tournament: tournament_model.TournamentM) -> None:
         """
@@ -355,7 +356,7 @@ class TournamentC:
         Reçoit un objet tournoi et affiche le classement complet du tour pour chacun des tours du tournoi
         """
         for turn in tournament_obj.turn_list:
-            self.app_messenger.send_event(AppInput.DISPLAY_TURN_RANKING, [turn])
+            self.app_messenger.send_event(config.AppInput.DISPLAY_TURN_RANKING, [turn])
 
     def get_full_tournament_data(self, tournament_obj: tournament_model.TournamentM) -> Tuple[List, int, int]:
         """
@@ -369,7 +370,7 @@ class TournamentC:
         for turn in tournament_obj.turn_list:
             turn_name, turn_timestamp, turn_detail, turn_match_len, turn_match_detail_lent = \
                 self.app_messenger.send_event(
-                    AppInput.TURN_FULL_VIEW,
+                    config.AppInput.TURN_FULL_VIEW,
                     [turn]
                 )
 
@@ -387,8 +388,8 @@ class TournamentC:
         Reçoit un objet tournoi, génére l'affichage complet du déroulement du tournoi et l'affiche sur la
         vue principale de l'application.
         """
-        self.app_messenger.accept_event(AppInput.MATCH_FLAT_VIEW)
-        self.app_messenger.accept_event(AppInput.TURN_FULL_VIEW)
+        self.app_messenger.accept_event(config.AppInput.MATCH_FLAT_VIEW)
+        self.app_messenger.accept_event(config.AppInput.TURN_FULL_VIEW)
 
         tournament_full_data, match_len, detail_len = self.get_full_tournament_data(tournament_obj)
         tournament_display = tournament_view.tournament_object_full_view(tournament_full_data, match_len, detail_len)

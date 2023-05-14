@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from typing import List, Dict, Callable, Any
-from data.config import AppInput
+from data import config
 
 from core import messenger, tinydb_loader, mainview
 from chess_manager.M import player_model
 from chess_manager.V import player_view
 
-DB_NAME = 'player'
+DB_NAME = config.PLAYER_DB_NAME
 
 
 def get_flat_player_view(player_obj: player_model.PlayerM) -> str:
@@ -41,20 +41,20 @@ class PlayerC:
         self.app_messenger = app_messenger
 
         # Déclaration des paires événement/méthode
-        app_messenger.register_call_event(AppInput.NEW_PLAYER, self.create_new_player_from_form,
+        app_messenger.register_call_event(config.AppInput.NEW_PLAYER, self.create_new_player_from_form,
                                           "Create new player", )
-        app_messenger.register_call_event(AppInput.VIEW_PLAYER_LIST, self.show_player_selection_list,
+        app_messenger.register_call_event(config.AppInput.VIEW_PLAYER_LIST, self.show_player_selection_list,
                                           "View player listing")
-        app_messenger.register_call_event(AppInput.ADD_PLAYER, self.show_player_selection_list,
+        app_messenger.register_call_event(config.AppInput.ADD_PLAYER, self.show_player_selection_list,
                                           "Add player")
-        app_messenger.register_call_event(AppInput.NEXT_PLAYER_PAGE, self.show_player_selection_list,
+        app_messenger.register_call_event(config.AppInput.NEXT_PLAYER_PAGE, self.show_player_selection_list,
                                           "See next player page")
-        app_messenger.register_call_event(AppInput.PREV_PLAYER_PAGE, self.show_player_selection_list,
+        app_messenger.register_call_event(config.AppInput.PREV_PLAYER_PAGE, self.show_player_selection_list,
                                           "See previous player page")
 
-        app_messenger.register_call_event(AppInput.LOAD_PLAYER, self.load_player_obj_from_player_id)
-        app_messenger.register_call_event(AppInput.PLAYER_FULL_VIEW, self._display_player)
-        app_messenger.register_call_event(AppInput.PLAYER_FLAT_VIEW, get_flat_player_view)
+        app_messenger.register_call_event(config.AppInput.LOAD_PLAYER, self.load_player_obj_from_player_id)
+        app_messenger.register_call_event(config.AppInput.PLAYER_FULL_VIEW, self._display_player)
+        app_messenger.register_call_event(config.AppInput.PLAYER_FLAT_VIEW, get_flat_player_view)
 
     def _create_new_player_from_dict(self,
                                      player_creation_data: Dict) -> player_model.PlayerM:
@@ -114,7 +114,8 @@ class PlayerC:
         """
         for player in player_obj_list:
             player_str = player_view.see_player_as_line(player)
-            updated_event_call = self.app_messenger.update_event(AppInput.PLAYER_FULL_VIEW, new_func=callback_func,
+            updated_event_call = self.app_messenger.update_event(config.AppInput.PLAYER_FULL_VIEW,
+                                                                 new_func=callback_func,
                                                                  new_func_arg=[player], new_str=player_str,
                                                                  make_copy=True)
             self.app_messenger.accept_event(player_str, call_event=updated_event_call)
@@ -127,9 +128,9 @@ class PlayerC:
         """
         self.main_view.add_to_display(_get_player_display(player))
         self.app_messenger.ignore_all()
-        self.app_messenger.accept_event(AppInput.VIEW_PLAYER_LIST)
-        self.app_messenger.accept_event(AppInput.MAIN_MENU)
-        self.app_messenger.accept_event(AppInput.QUIT)
+        self.app_messenger.accept_event(config.AppInput.VIEW_PLAYER_LIST)
+        self.app_messenger.accept_event(config.AppInput.MAIN_MENU)
+        self.app_messenger.accept_event(config.AppInput.QUIT)
 
     def load_and_order_player_alphab(self,
                                      list_of_player_id=None) -> List:
@@ -157,7 +158,7 @@ class PlayerC:
     def show_player_selection_list(self,
                                    list_of_player_to_display: List | None = None,
                                    player_exclude_from_display: List | None = None,
-                                   nbr_of_display_by_page: int = 10,
+                                   nbr_of_display_by_page: int = config.NBR_OF_PLAYER_TO_DISPLAY_BY_PAGE,
                                    actual_page: int = 0,
                                    callback_func: Any | None = None):
         """
@@ -169,22 +170,24 @@ class PlayerC:
         self.app_messenger.ignore_all()
 
         if actual_page != 0:
-            self.app_messenger.accept_event(AppInput.PREV_PLAYER_PAGE,
+            self.app_messenger.accept_event(config.AppInput.PREV_PLAYER_PAGE,
                                             [list_of_player_to_display,
                                              player_exclude_from_display,
                                              nbr_of_display_by_page,
                                              actual_page - 1,
                                              callback_func])
 
-        self.app_messenger.accept_event(AppInput.NEXT_PLAYER_PAGE,
+        self.app_messenger.accept_event(config.AppInput.NEXT_PLAYER_PAGE,
                                         [list_of_player_to_display,
                                          player_exclude_from_display,
                                          nbr_of_display_by_page,
                                          actual_page + 1,
                                          callback_func])
 
-        self.app_messenger.accept_event(AppInput.MAIN_MENU)
-        self.app_messenger.accept_event(AppInput.QUIT)
+        self.app_messenger.accept_event(config.AppInput.MAIN_MENU)
+        self.app_messenger.accept_event(config.AppInput.QUIT)
+
+        nbr_of_display_by_page = min(nbr_of_display_by_page, self.loader.get_nbr_db_entry(DB_NAME))
 
         if player_exclude_from_display is None:
             player_exclude_from_display = list()
@@ -206,11 +209,11 @@ class PlayerC:
 
         if len(player_listing) == 0:
             self.main_view.add_to_display(player_view.no_existing_player_error())
-            self.app_messenger.ignore_event(AppInput.NEXT_PLAYER_PAGE)
+            self.app_messenger.ignore_event(config.AppInput.NEXT_PLAYER_PAGE)
             return
 
         if len(player_listing) < nbr_of_display_by_page:
-            self.app_messenger.ignore_event(AppInput.NEXT_PLAYER_PAGE)
+            self.app_messenger.ignore_event(config.AppInput.NEXT_PLAYER_PAGE)
 
         if callback_func is None:
             callback_func = self._display_player

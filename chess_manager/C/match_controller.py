@@ -8,7 +8,7 @@ from data import config
 from chess_manager.M import match_model
 from chess_manager.V import match_view
 
-DB_NAME = "match"
+DB_NAME = config.MATCH_DB_NAME
 
 
 def _get_match_obj_from_match_dict(match_dict: Dict) -> match_model.MatchM:
