@@ -103,14 +103,14 @@ class TournamentM:
     def register_turn(self, turn: turn_model.TurnM) -> None:
         self.turn_list.append(turn)
 
-    def get_curent_turn(self) -> int:
+    def get_current_turn_nbr(self) -> int:
         return len(self.turn_list)
 
     @property
     def is_finished(self) -> bool:
         if self.end_date is not None:
             return True
-        if self.get_curent_turn() < self.turn_nbr:
+        if self.get_current_turn_nbr() < self.turn_nbr:
             return False
         return self.turn_list[-1].finished
 
@@ -120,7 +120,7 @@ class TournamentM:
         self.end_date = datetime.datetime.now().strftime("%d/%m/%y %H:%M")
 
     def get_next_turn_player_pair(self) -> List:
-        if self.get_curent_turn() > 0:
+        if self.get_current_turn_nbr() > 0:
             return _make_player_pair(_order_player_by_score(self.turn_list[-1].get_turn_data()))
         player_list = _shuffle_player_list(self.players)
         player_data = [[player, 0] for player in player_list]
