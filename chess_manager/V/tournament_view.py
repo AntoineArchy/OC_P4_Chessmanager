@@ -50,8 +50,8 @@ def tournament_object_flat_view(tournament_obj: tournament_model.TournamentM) ->
 
 def tournament_object_full_view(tournament_full_data, max_match_name_len, max_match_detail_len):
     """
-    Reçoit un objet tournoi et en retourne la représentation des informations
-    complète des tours et matchs du tournoi
+    Reçoit un dictionnaire des informations complètes d'un objet tournoi et en retourne la représentation
+    complète des tours et matchs du tournoi mis en forme
     """
 
     to_display = list()
