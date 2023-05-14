@@ -71,7 +71,8 @@ class MainView:
     def get_user_select(self, message, allowed_input: dict) -> Any:
         """
         "Boucle" principale du traitement des inputs utilisateur,
-        reçoit un message à afficher ainsi qu'un dict de {texte_a_afficher : valeur_a_retourner_en_cas_de_selection, ...}
+        reçoit un message à afficher ainsi qu'un dict de :
+        {texte_a_afficher : valeur_a_retourner_en_cas_de_selection, ...}
         """
         choices = list(allowed_input)
         user_select = questionary.select(

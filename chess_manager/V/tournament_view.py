@@ -13,7 +13,9 @@ def tournament_creation_form() -> Dict:
 
 
 def on_going_tournament_view(tournament_obj: tournament_model.TournamentM) -> str:
-    """Reçoit un objet tournoi en cours et en retourne la représentation des informations d'identification du tournoi"""
+    """
+    Reçoit un objet tournoi en cours et en retourne la représentation des informations d'identification du tournoi
+    """
     return f"Tournament : {tournament_obj.name}\n" \
            f"At : {tournament_obj.place} \n" \
            f"Description : {tournament_obj.description} \n" \

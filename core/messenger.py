@@ -101,7 +101,8 @@ class Messenger:
             self.event_str_dict[new_str] = new_str
 
         if not make_copy:
-            # Si l'utilisateur met à jour un événement sans demander une copie, on met à jour l'enregistrement d'origine
+            # Si l'utilisateur met à jour un événement sans demander une copie, on met à jour
+            # l'enregistrement d'origine
             self.ori_event_dict[event] = to_update_event
         return to_update_event
 

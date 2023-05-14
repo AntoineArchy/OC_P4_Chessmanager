@@ -184,6 +184,8 @@ class TournamentC:
                     match_list.append(self.app_messenger.send_event(config.AppInput.NEW_MATCH, [match_data]))
                 turn_obj.match_list = match_list
                 turn_is_finished = turn_obj.finished
+                if turn_is_finished and turn_obj.end_date is None:
+                    print(f"Something went wrong while loading {turn_obj.name}")
                 turn_list.append(turn_obj)
             tournament['players'] = player_list
             tournament['turn_list'] = turn_list
