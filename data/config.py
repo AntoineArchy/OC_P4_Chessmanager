@@ -42,6 +42,7 @@ class AppInput(Enum):
     RESUME_TOURNAMENT = auto()
     SET_TOURNAMENT_ACTIV = auto()
     TOURNAMENT_RANKING = auto()
+    TOURNAMENT_DETAILS = auto()
     NEXT_TOURNAMENT_PAGE = auto()
     PREV_TOURNAMENT_PAGE = auto()
     VIEW_TOURNAMENT_LIST = auto()
