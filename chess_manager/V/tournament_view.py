@@ -18,7 +18,7 @@ def on_going_tournament_view(tournament_obj: tournament_model.TournamentM) -> st
            f"At : {tournament_obj.place} \n" \
            f"Description : {tournament_obj.description} \n" \
            f"Started {tournament_obj.start_date} - On going \n" \
-           f"Actual turn : {tournament_obj.get_curent_turn()} / {tournament_obj.turn_nbr}\n" \
+           f"Actual turn : {tournament_obj.get_current_turn_nbr()} / {tournament_obj.turn_nbr}\n" \
            f"Registered players : {len(tournament_obj.players)} / {tournament_obj.player_nbr}\n"
 
 
