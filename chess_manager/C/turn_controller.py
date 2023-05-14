@@ -16,10 +16,10 @@ def _get_turn_obj_from_turn_dict(turn_dict: Dict) -> turn_model.TurnM:
 class TurnC:
     def __init__(self,
                  loader: tinydb_loader.TinyDBLoader,
-                 master_view: mainview.MainView,
+                 main_view: mainview.MainView,
                  app_messenger: messenger.Messenger) -> None:
 
-        self.master_view = master_view
+        self.main_view = main_view
         self.loader = loader
         self.app_messenger = app_messenger
 
@@ -89,7 +89,7 @@ class TurnC:
         Reçoit une liste de tour, génère des événements pour les afficher sur la vue principale et rendre les
         tours actif, enregistre ces événements auprès du messenger principal de l'application.
         """
-        self.master_view.menu_title = "## Turn SELECTION ##"
+        self.main_view.menu_title = "## Turn SELECTION ##"
 
         if callback_func is None:
             callback_func = self.set_turn_as_active
@@ -130,9 +130,9 @@ class TurnC:
         Si le nombre de joueurs n'est pas précisé, l'intégralité des joueurs du tour sont affichés
         """
         ranking_display = self.get_turn_ranking(turn, nbr_player_to_display)
-        self.master_view.add_to_display(f"{turn.name} ranking :")
+        self.main_view.add_to_display(f"{turn.name} ranking :")
         for individual_player_score in ranking_display:
-            self.master_view.add_to_display(individual_player_score)
+            self.main_view.add_to_display(individual_player_score)
 
     def get_turn_full_data(self, turn: turn_model.TurnM) -> Tuple:
         """

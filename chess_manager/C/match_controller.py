@@ -42,10 +42,10 @@ def _order_match_by_status(match_list: List) -> List:
 class MatchC:
     def __init__(self,
                  loader: tinydb_loader.TinyDBLoader,
-                 master_view: mainview.MainView,
+                 main_view: mainview.MainView,
                  app_messenger: messenger.Messenger) -> None:
 
-        self.master_view = master_view
+        self.main_view = main_view
         self.loader = loader
         self.app_messenger = app_messenger
 
@@ -127,7 +127,7 @@ class MatchC:
                             match: match_model.MatchM) -> None:
         """ Reçoit un objet match, le sauvegarde, l'affiche sur la vue principale et affiche les contrôles du match """
         self._save_match_obj(match)
-        self.master_view.add_to_display(match_view.see_match_as_line(match))
+        self.main_view.add_to_display(match_view.see_match_as_line(match))
         self._get_match_control(match)
 
     def handle_winner_input(self,
@@ -152,7 +152,7 @@ class MatchC:
         Reçoit une liste de match, les affiche sur la vue principale et accepte les évènements
         liés à la gestion de matchs au cours d'un tour de tournois.
         """
-        self.master_view.menu_title = "## Match SELECTION ##"
+        self.main_view.menu_title = "## Match SELECTION ##"
         self.app_messenger.ignore_all()
 
         self.app_messenger.update_event(config.AppInput.BACK_TO_MATCH_LIST,

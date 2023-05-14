@@ -33,10 +33,10 @@ def get_player_obj_from_player_dict(player_dict: Dict) -> player_model.PlayerM:
 class PlayerC:
     def __init__(self,
                  loader: tinydb_loader.TinyDBLoader,
-                 master_view: mainview.MainView,
+                 main_view: mainview.MainView,
                  app_messenger: messenger.Messenger) -> None:
 
-        self.master_view = master_view
+        self.main_view = main_view
         self.loader = loader
         self.app_messenger = app_messenger
 
@@ -68,12 +68,12 @@ class PlayerC:
         Créer un nouveau joueur à partir des réponses fournit par l'utilisateur au formulaire
         de création de joueurs
         """
-        self.master_view.menu_title = "## Player creation ##"
+        self.main_view.menu_title = "## Player creation ##"
 
-        player_data = get_new_player_creation_data(self.master_view)
+        player_data = get_new_player_creation_data(self.main_view)
         new_player = self._create_new_player_from_dict(player_data)
 
-        self.master_view.add_to_display(_get_player_display(new_player))
+        self.main_view.add_to_display(_get_player_display(new_player))
         return new_player
 
     def _load_player_data_from_player_id(self,
@@ -125,7 +125,7 @@ class PlayerC:
         Reçoit un objet joueur et l'affiche sur la vue principale avant d'accepter les événements lié à la
         visualisation de joueur
         """
-        self.master_view.add_to_display(_get_player_display(player))
+        self.main_view.add_to_display(_get_player_display(player))
         self.app_messenger.ignore_all()
         self.app_messenger.accept_event(AppInput.VIEW_PLAYER_LIST)
         self.app_messenger.accept_event(AppInput.MAIN_MENU)
@@ -165,7 +165,7 @@ class PlayerC:
         visualisation des joueurs
         Si aucune liste n'est fourni, l'intégralité de la base ed donnée est chargée,
         """
-        self.master_view.menu_title = "## Player SELECTION ##"
+        self.main_view.menu_title = "## Player SELECTION ##"
         self.app_messenger.ignore_all()
 
         if actual_page != 0:
@@ -205,7 +205,7 @@ class PlayerC:
         player_listing = self.load_and_order_player_alphab(list_of_player_to_display)
 
         if len(player_listing) == 0:
-            self.master_view.add_to_display(player_view.no_existing_player_error())
+            self.main_view.add_to_display(player_view.no_existing_player_error())
             self.app_messenger.ignore_event(AppInput.NEXT_PLAYER_PAGE)
             return
 
