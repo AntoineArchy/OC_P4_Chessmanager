@@ -49,6 +49,7 @@ class TurnM:
         for match in self.match_list:
             if match.winner is None:
                 return False
-        if self.end_time is None:
-            self.end_turn()
+        if self.end_time is not None:
+            return True
+        self.end_turn()
         return True
