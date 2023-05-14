@@ -1,10 +1,10 @@
 from functools import partial
-from typing import Dict
+from typing import Dict, Callable, List, Tuple
 
 from core import messenger, mainview, tinydb_loader
 from data.config import AppInput
 
-from chess_manager.M import tournament_model
+from chess_manager.M import tournament_model, player_model, turn_model
 from chess_manager.V import tournament_view
 
 DB_NAME = 'tournament'
@@ -51,7 +51,7 @@ class TournamentC:
         app_messenger.register_call_event(AppInput.BACK_TO_TURN_LIST, self.switch_to_turn_control,
                                           "Back to turn list")
 
-    def save_tournament(self, tournament_obj):
+    def save_tournament(self, tournament_obj: tournament_model.TournamentM) -> None:
         # EDGE CASE : User can finish the last match and quit the app without generating
         # next turn or checking tournament completion.
         # Checking here allow to properly set the end time.
@@ -59,10 +59,10 @@ class TournamentC:
             tournament_obj.end_tournament()
         tournament_obj.tournament_id = self.loader.save_tournament(tournament_obj.from_obj_to_dict())
 
-    def display_tournament(self, tournament_obj):
+    def display_tournament(self, tournament_obj: tournament_model.TournamentM) -> None:
         self.main_view.add_to_display(_get_tournament_display(tournament_obj))
 
-    def get_tournament_controls(self, tournament_obj):
+    def get_tournament_controls(self, tournament_obj: tournament_model.TournamentM) -> None:
         """
         Reçoit un objet tournoi, génère et déclare comme disponible auprès du messenger de l'application les
         différents événements liés à la gestion de cet objet tournoi en fonction de ses différents paramètres
@@ -97,7 +97,7 @@ class TournamentC:
         self.app_messenger.accept_event(AppInput.MAIN_MENU)
         self.app_messenger.accept_event(AppInput.QUIT)
 
-    def update_available_p_list(self, tournament_obj):
+    def update_available_p_list(self, tournament_obj: tournament_model.TournamentM) -> None:
         """
         Reçoit un objet tournoi dont tous les joueurs ne sont pas renseigné et génère les événements permettants
         l'ajout de nouveau joueurs
@@ -112,7 +112,7 @@ class TournamentC:
 
         self.app_messenger.accept_event(AppInput.ADD_PLAYER, call_event=add_to_this_tournament_func)
 
-    def create_new_tournament(self):
+    def create_new_tournament(self) -> None:
         """
         Permet la création d'un nouvel objet tournoi en fonction des réponses de l'utilisateur au formulaire de
         création de tournoi
@@ -128,7 +128,9 @@ class TournamentC:
 
         self.set_tournament_as_active(new_tournament)
 
-    def add_player_to_tournament(self, player_obj, tournament_obj):
+    def add_player_to_tournament(self,
+                                 player_obj: player_model.PlayerM,
+                                 tournament_obj: tournament_model.TournamentM) -> None:
         """
         Reçoit un objet joueur et un objet tournoi, ajoute le joueur au tournoi si c'est possible, affiche le tournoi,
         affiche le joueur, retourne au menu du tournoi si tous les joueurs sont présent sinon reste sur la page d'ajout
@@ -148,7 +150,9 @@ class TournamentC:
         tournament_obj.players.sort(key=lambda individual_player_obj: f"{individual_player_obj.get_alphab_sort()}")
         self.save_tournament(tournament_obj)
 
-    def load_tournament_by_tournament_id(self, tournament_id, partial_load=False):
+    def load_tournament_by_tournament_id(self,
+                                         tournament_id: int,
+                                         partial_load: bool = False) -> tournament_model.TournamentM:
         """
         Reçoit un tournament_id et le charge partiellement ou non en fonction de l'arguments reçu. Si rien n'est
         précisé, le tournois est entièrement chargé.
@@ -170,7 +174,6 @@ class TournamentC:
             player_dict = {player.player_id: player for player in player_list}
             for turn_id in tournament['turn_list']:
                 match_list = list()
-                # turn_data = self.loader.load_turn_obj_from_turn_id(turn_id)
                 turn_obj = self.app_messenger.send_event(AppInput.LOAD_TURN, [turn_id])
                 for match in turn_obj.match_list:
                     match_data = self.loader.load_match(match)
@@ -180,6 +183,7 @@ class TournamentC:
                     match_data['player_2'] = player_dict[match_data.get('player_2')]
                     match_list.append(self.app_messenger.send_event(AppInput.NEW_MATCH, [match_data]))
                 turn_obj.match_list = match_list
+                turn_is_finished = turn_obj.finished
                 turn_list.append(turn_obj)
             tournament['players'] = player_list
             tournament['turn_list'] = turn_list
@@ -187,7 +191,9 @@ class TournamentC:
         tournament_data = {**tournament, 'tournament_id': tournament_id}
         return tournament_model.TournamentM(**tournament_data)
 
-    def add_temp_tournament_selection_event_to_messenger(self, tournament_listing, callback_func):
+    def add_temp_tournament_selection_event_to_messenger(self,
+                                                         tournament_listing: List,
+                                                         callback_func: Callable) -> None:
         """
         Reçoit une liste d'objet tournoi, génère des événements pour les afficher sur la vue principale et
         enregistre ces événements auprès du messenger principal de l'application.
@@ -201,7 +207,10 @@ class TournamentC:
 
             self.app_messenger.accept_event(tournament_str, call_event=updated_event_call, event_arg=[tournament])
 
-    def show_tournament_selection_list(self, from_id=0, to_id=None, excluded_id=None, callback_func=None):
+    def show_tournament_selection_list(self, from_id: int = 0,
+                                       to_id: int | None = None,
+                                       excluded_id: List | None = None,
+                                       callback_func: Callable or None = None) -> None:
         """
         Permet l'affichage d'une liste de tournoi sur la vue principale et accepte les évènements liés à la
         visualisation d'un tournoi
@@ -221,11 +230,12 @@ class TournamentC:
         if to_id is None:
             to_id = self.loader.get_nbr_db_entry(DB_NAME)
 
-        for id in range(from_id, to_id + 1):
-            if id in excluded_id:
+        for tournament_id_to_display in range(from_id, to_id + 1):
+            if tournament_id_to_display in excluded_id:
                 continue
-            if self.loader.tournament_exist(id):
-                tournament_listing.append(self.load_tournament_by_tournament_id(id, partial_load=True))
+            if self.loader.tournament_exist(tournament_id_to_display):
+                tournament_listing.append(self.load_tournament_by_tournament_id(tournament_id_to_display,
+                                                                                partial_load=True))
         if len(tournament_listing) == 0:
             print("No tournament to show")
             return
@@ -239,7 +249,7 @@ class TournamentC:
         self.app_messenger.accept_event(AppInput.MAIN_MENU)
         self.app_messenger.accept_event(AppInput.QUIT)
 
-    def set_tournament_as_active(self, tournament_obj):
+    def set_tournament_as_active(self, tournament_obj: tournament_model.TournamentM) -> None:
         """
         Reçoit un objet tournois partiellement chargée, le charge entièrement, l'affiche et en affiche les contrôle
         """
@@ -247,7 +257,7 @@ class TournamentC:
         self.display_tournament(active_tournament)
         self.get_tournament_controls(active_tournament)
 
-    def start_tournament(self, tournament):
+    def start_tournament(self, tournament: tournament_model.TournamentM) -> None:
         """
         Reçoit un objet tournoi, génère le tour suivant, sauvegarde le tournoi et en affiche les contrôle
         """
@@ -255,7 +265,7 @@ class TournamentC:
         self.save_tournament(tournament)
         self.resume_tournament(tournament)
 
-    def go_to_next_turn(self, tournament_obj: tournament_model.TournamentM):
+    def go_to_next_turn(self, tournament_obj: tournament_model.TournamentM) -> None:
         """
         Reçoit un objet tournoi, clôture le tour précédent, récupère le tour suivant,
         sauvegarde le tournoi.
@@ -274,7 +284,7 @@ class TournamentC:
 
         self.app_messenger.send_event(AppInput.SET_TURN_ACTIV, [next_turn])
 
-    def get_next_turn(self, tournament: tournament_model.TournamentM):
+    def get_next_turn(self, tournament: tournament_model.TournamentM) -> turn_model.TurnM | bool:
         """
         Reçoit un object tournoi, retourne le tour qui doit être joué pour progresser le tournoi si il est disponible,
         sinon retourne False
@@ -298,14 +308,14 @@ class TournamentC:
         for match in next_turn.match_list:
             match.match_id = self.loader.save_match(match.get_save_data())
 
-        self.app_messenger.send_event(AppInput.END_TURN,[tournament.turn_list[-1]])
+        self.app_messenger.send_event(AppInput.END_TURN, [tournament.turn_list[-1]])
         tournament.register_turn(next_turn)
         self.save_tournament(tournament)
         return next_turn
 
     def switch_to_turn_control(self,
                                tournament: tournament_model.TournamentM,
-                               finished: bool=False) -> None:
+                               finished: bool = False) -> None:
         """
         Reçoit un tournoi, déclare disponible et met à jour les événement lié au tournoi en cour et affiche les
         contrôles des tours du tournoi
@@ -322,7 +332,7 @@ class TournamentC:
 
         self.app_messenger.send_event(AppInput.VIEW_TURN_LIST, [tournament.turn_list, None, finished])
 
-    def resume_tournament(self, tournament):
+    def resume_tournament(self, tournament: tournament_model.TournamentM) -> None:
         """
         Reçoit un objet tournoi, contrôle le statu du dernier tour du tournoi avant d'afficher les contrôles du tournoi
         """
@@ -332,7 +342,7 @@ class TournamentC:
             return
         self.switch_to_turn_control(tournament, tournament.is_finished)
 
-    def start_or_resume_tournament(self, tournament):
+    def start_or_resume_tournament(self, tournament: tournament_model.TournamentM) -> None:
         """
         Reçoit un objet tournoi, vérifie s'il faut reprendre le tournoi en cour ou commencer ce nouveau tournoi
         """
@@ -347,7 +357,7 @@ class TournamentC:
         for turn in tournament_obj.turn_list:
             self.app_messenger.send_event(AppInput.DISPLAY_TURN_RANKING, [turn])
 
-    def get_full_tournament_data(self, tournament_obj):
+    def get_full_tournament_data(self, tournament_obj: tournament_model.TournamentM) -> Tuple[List, int, int]:
         """
         Reçoit un objet tournoi, parse la liste des tours pour obtenir la représentation et l'espace nécessaire à
         l'affichage détaillé d'un tour et ses matchs
@@ -372,14 +382,13 @@ class TournamentC:
             tournament_full_data.append([turn_name, turn_timestamp, turn_detail])
         return tournament_full_data, match_len, detail_len
 
-    def view_tournament_details(self, tournament_obj):
+    def view_tournament_details(self, tournament_obj: tournament_model.TournamentM) -> None:
         """
         Reçoit un objet tournoi, génére l'affichage complet du déroulement du tournoi et l'affiche sur la
         vue principale de l'application.
         """
         self.app_messenger.accept_event(AppInput.MATCH_FLAT_VIEW)
         self.app_messenger.accept_event(AppInput.TURN_FULL_VIEW)
-        # self.app_messenger.ignore_event(AppInput.TOURNAMENT_RANKING)
 
         tournament_full_data, match_len, detail_len = self.get_full_tournament_data(tournament_obj)
         tournament_display = tournament_view.tournament_object_full_view(tournament_full_data, match_len, detail_len)
