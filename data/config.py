@@ -1,6 +1,13 @@
 from enum import Enum, auto
 
+SAVE_DIRECTORY = 'data'
 
+PLAYER_DB_NAME = 'player'
+TOURNAMENT_DB_NAME = 'tournament'
+TURN_DB_NAME = 'turn'
+MATCH_DB_NAME = 'match'
+
+NBR_OF_PLAYER_TO_DISPLAY_BY_PAGE = 10
 class AppInput(Enum):
     """
     Conteneur des différents inputs et actions qui sont appelé par l'utilisateur et les contrôleurs de l'application
