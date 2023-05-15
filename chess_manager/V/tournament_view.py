@@ -40,14 +40,26 @@ def tournament_obj_view(tournament_obj: tournament_model.TournamentM) -> str:
     return on_going_tournament_view(tournament_obj)
 
 
+def flat_on_going_tournament_view(tournament_obj: tournament_model.TournamentM) -> str:
+    return f"ON GOING : {tournament_obj.name} at {tournament_obj.place} : " \
+           f"{len(tournament_obj.turn_list)}/{tournament_obj.turn_nbr} turn, " \
+           f"Started {tournament_obj.start_date}"
+
+
+def flat_finished_tournament_view(tournament_obj: tournament_model.TournamentM) -> str:
+    return f"FINISHED : {tournament_obj.name} at {tournament_obj.place} : " \
+           f"{len(tournament_obj.turn_list)}/{tournament_obj.turn_nbr} turn, " \
+           f"Started {tournament_obj.start_date} - finished : {tournament_obj.end_date}"
+
+
 def tournament_object_flat_view(tournament_obj: tournament_model.TournamentM) -> str:
     """
     Reçoit un objet tournoi et en retourne une représentation en ligne suffisante pour l'identification du tournoi
     dans une liste
     """
-    return f"{tournament_obj.name} at {tournament_obj.place} : " \
-           f"{len(tournament_obj.turn_list)}/{tournament_obj.turn_nbr} turn, " \
-           f"Started {tournament_obj.start_date}"
+    if tournament_obj.end_date is not None:
+        return flat_finished_tournament_view(tournament_obj)
+    return flat_on_going_tournament_view(tournament_obj)
 
 
 def tournament_object_full_view(tournament_full_data, max_match_name_len, max_match_detail_len):
