@@ -24,6 +24,20 @@ def _get_new_tournament_creation_data(main_view: mainview.MainView) -> Dict:
     return form_answer
 
 
+def _order_tournament_by_tournament_id(tournament_list: List) -> List:
+    return sorted(tournament_list, key=lambda tournament_obj: tournament_obj.tournament_id, reverse=True)
+
+
+def _order_tournament_by_status(tournament_list: List) -> List:
+    """Reçoit une liste de match non ordonnée, retourne une liste de match en cours puis terminé"""
+    unfinished = [tournament for tournament in tournament_list if tournament.end_date is None]
+    finished = [tournament for tournament in tournament_list if tournament not in unfinished]
+
+    unfinished = _order_tournament_by_tournament_id(unfinished)
+    finished = _order_tournament_by_tournament_id(finished)
+    return [*unfinished, *finished]
+
+
 class TournamentC:
     def __init__(self,
                  loader: tinydb_loader.TinyDBLoader,
@@ -186,7 +200,7 @@ class TournamentC:
                     match_list.append(self.app_messenger.send_event(config.AppInput.NEW_MATCH, [match_data]))
                 turn_obj.match_list = match_list
                 turn_is_finished = turn_obj.finished
-                if turn_is_finished and turn_obj.end_date is None:
+                if turn_is_finished and turn_obj.end_time is None:
                     print(f"Something went wrong while loading {turn_obj.name}")
                 turn_list.append(turn_obj)
             tournament['players'] = player_list
@@ -202,7 +216,9 @@ class TournamentC:
         Reçoit une liste d'objet tournoi, génère des événements pour les afficher sur la vue principale et
         enregistre ces événements auprès du messenger principal de l'application.
         """
-        for tournament in tournament_listing:
+        ordered_tournament = _order_tournament_by_status(tournament_listing)
+
+        for tournament in ordered_tournament:
             tournament_str = tournament_view.tournament_object_flat_view(tournament)
             updated_event_call = self.app_messenger.update_event(config.AppInput.SET_TOURNAMENT_ACTIV,
                                                                  new_func=callback_func,
@@ -276,6 +292,7 @@ class TournamentC:
         Affiche le tournoi et ses contrôles s'il est terminée,
         Affiche les contrôles du tour suivant si le tournoi est toujours en cours
         """
+        self.app_messenger.accept_event(config.AppInput.END_TURN)
         self.app_messenger.send_event(config.AppInput.END_TURN, [tournament_obj.turn_list[-1]])
         next_turn = self.get_next_turn(tournament_obj)
         self.save_tournament(tournament_obj)
@@ -304,16 +321,16 @@ class TournamentC:
             return False
 
         self.app_messenger.accept_event(config.AppInput.NEW_TURN)
+        self.app_messenger.accept_event(config.AppInput.END_TURN)
         self.app_messenger.accept_event(config.AppInput.NEW_MATCH)
 
         next_turn = self.app_messenger.send_event(config.AppInput.NEW_TURN,
-                                                  [{"name": f'Round{len(tournament.turn_list)}',
+                                                  [{"name": f'Round{len(tournament.turn_list) + 1}',
                                                     "player_pair": players_pair_list}])
 
-        # for match in next_turn.match_list:
-        #     match.match_id = self.loader.save_match(match.get_save_data())
+        if tournament.turn_list:
+            self.app_messenger.send_event(config.AppInput.END_TURN, [tournament.turn_list[-1]])
 
-        self.app_messenger.send_event(config.AppInput.END_TURN, [tournament.turn_list[-1]])
         tournament.register_turn(next_turn)
         self.save_tournament(tournament)
         return next_turn
