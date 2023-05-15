@@ -193,10 +193,13 @@ class PlayerC:
             player_exclude_from_display = list()
 
         if list_of_player_to_display is None:
-            display_from = 1 + actual_page * nbr_of_display_by_page
+            display_from = 0 + actual_page * nbr_of_display_by_page
             display_to = display_from + nbr_of_display_by_page + len(player_exclude_from_display)
             player_alphab = self.load_and_order_player_alphab()
             list_of_player_to_display = player_alphab[display_from:display_to]
+
+        if len(list_of_player_to_display) < nbr_of_display_by_page:
+            self.app_messenger.ignore_event(config.AppInput.NEXT_PLAYER_PAGE)
 
         for excluded in player_exclude_from_display:
             if excluded in list_of_player_to_display:
@@ -211,9 +214,6 @@ class PlayerC:
             self.main_view.add_to_display(player_view.no_existing_player_error())
             self.app_messenger.ignore_event(config.AppInput.NEXT_PLAYER_PAGE)
             return
-
-        if len(player_listing) < nbr_of_display_by_page:
-            self.app_messenger.ignore_event(config.AppInput.NEXT_PLAYER_PAGE)
 
         if callback_func is None:
             callback_func = self._display_player
