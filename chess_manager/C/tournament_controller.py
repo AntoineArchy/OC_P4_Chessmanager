@@ -76,7 +76,9 @@ class TournamentC:
         tournament_obj.tournament_id = self.loader.save_tournament(tournament_obj.from_obj_to_dict())
 
     def display_tournament(self, tournament_obj: tournament_model.TournamentM) -> None:
+        self.save_tournament(tournament_obj)
         self.main_view.add_to_display(_get_tournament_display(tournament_obj))
+
 
     def get_tournament_controls(self, tournament_obj: tournament_model.TournamentM) -> None:
         """
@@ -97,6 +99,7 @@ class TournamentC:
 
         # Si le tournoi est terminé, impossible d'aller au tour suivant
         if tournament_obj.is_finished:
+            tournament_obj.end_tournament()
             self.app_messenger.ignore_event(config.AppInput.NEXT_TURN)
 
         self.app_messenger.accept_event(config.AppInput.PLAYER_FLAT_VIEW)
@@ -156,7 +159,9 @@ class TournamentC:
 
         if len(tournament_obj.players) >= tournament_obj.player_nbr:
             return
-        tournament_obj.players.append(player_obj)
+
+        if player_obj not in tournament_obj.players:
+            tournament_obj.players.append(player_obj)
         self.display_tournament(tournament_obj)
 
         player_event = self.app_messenger.send_event(config.AppInput.PLAYER_FLAT_VIEW, [player_obj])
