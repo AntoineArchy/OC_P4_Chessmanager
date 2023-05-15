@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 from typing import Dict
 
@@ -17,7 +19,7 @@ def get_file_path_from_name(file_name: str) -> str:
     return os.path.join(full_save_path, f"{file_name}.json")
 
 
-# Si le répertoire de sauvegarde n'existe pas, on le créer directement
+# Si le répertoire de sauvegarde n'existe pas, on le crée directement
 if not os.path.exists(full_save_path):
     os.mkdir(full_save_path)
 
@@ -27,7 +29,7 @@ class TinyDBLoader:
         """
         Loader principal de l'application, gère la création et la mise à jour des bases de données et de l'indexation
         des objets dans les bases.
-        Repose sur TinyDB,peut être remplacer par un autre module reprennant les mêmes noms de méthode sans modifier
+        Repose sur TinyDB,peut être remplacer par un autre module reprenant les mêmes noms de méthode sans modifier
         d'autres fichiers de l'application.
         """
         db_dict = {db_name: TinyDB(get_file_path_from_name(db_name), sort_keys=True, indent=4, separators=(',', ': '))
@@ -45,14 +47,14 @@ class TinyDBLoader:
 
     def get_nbr_db_entry(self, db_name: str) -> int:
         """
-        Reçoit le nom d'un fichier de base de donnée et retourne le nombre d'entrée qu'il contient
+        Reçoit le nom d'un fichier de base de donnée et retourne le nombre d'entrées qu'il contient
         """
         working_database = self.get_db_handle(db_name)
         return len(working_database)
 
     def id_exist_in_db(self, working_db: TinyDB, entry_id: int) -> bool:
         """
-        Reçoit un objet de base de donnée et l'id d'une entrée, retourne si l'entrée éxiste ou non en base
+        Reçoit un objet de base de donnée et l'id d'une entrée, retourne si l'entrée existe ou non en base
         """
         working_database = working_db
         return working_database.contains(doc_id=entry_id)

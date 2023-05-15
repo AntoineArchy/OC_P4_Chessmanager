@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from functools import partial
 from typing import Dict, Callable, List, Tuple
 
@@ -75,7 +77,7 @@ class TournamentC:
         if len(tournament_obj.players) < tournament_obj.player_nbr:
             self.update_available_p_list(tournament_obj)
 
-        # Si on à tous les joueurs mais que le tournoi n'est pas terminé on permet à l'utilisateur de le reprendre
+        # Si on a tous les joueurs, mais que le tournoi n'est pas terminé, on permet à l'utilisateur de le reprendre
         if len(tournament_obj.players) == tournament_obj.player_nbr and not tournament_obj.is_finished:
             self.app_messenger.accept_event(config.AppInput.RESUME_TOURNAMENT, event_arg=[tournament_obj])
 
@@ -85,13 +87,13 @@ class TournamentC:
 
         self.app_messenger.accept_event(config.AppInput.PLAYER_FLAT_VIEW)
 
-        # Si on à joué au moins un tour du tournois, on affiche le podium et autorise l'affichage des 'stats'.
+        # Si on a joué au moins un tour du tournoi, on affiche le podium et autorise l'affichage des 'stats'.
         if tournament_obj.turn_list:
             self.app_messenger.accept_event(config.AppInput.DISPLAY_TURN_RANKING)
             self.app_messenger.send_event(config.AppInput.DISPLAY_TURN_RANKING, [tournament_obj.turn_list[-1], 3])
             self.app_messenger.accept_event(config.AppInput.TOURNAMENT_DETAILS, [tournament_obj])
             self.app_messenger.accept_event(config.AppInput.TOURNAMENT_RANKING, [tournament_obj])
-        # Quoi qu'il arrive,on permet la visualisation des joueurs et des fonctions basiques de l'application
+        # Quoi qu'il arrive, on permet la visualisation des joueurs et des fonctions basiques de l'application
         self.app_messenger.accept_event(config.AppInput.VIEW_PLAYER_LIST, [tournament_obj.players])
         self.app_messenger.accept_event(config.AppInput.BACK_TO_TOURNAMENT_LIST)
         self.app_messenger.accept_event(config.AppInput.MAIN_MENU)
@@ -99,7 +101,7 @@ class TournamentC:
 
     def update_available_p_list(self, tournament_obj: tournament_model.TournamentM) -> None:
         """
-        Reçoit un objet tournoi dont tous les joueurs ne sont pas renseigné et génère les événements permettants
+        Reçoit un objet tournoi dont tous les joueurs ne sont pas renseigné et génère les événements permettant
         l'ajout de nouveau joueurs
         """
         new_args = [None, [player.player_id for player in tournament_obj.players],
@@ -133,8 +135,8 @@ class TournamentC:
                                  tournament_obj: tournament_model.TournamentM) -> None:
         """
         Reçoit un objet joueur et un objet tournoi, ajoute le joueur au tournoi si c'est possible, affiche le tournoi,
-        affiche le joueur, retourne au menu du tournoi si tous les joueurs sont présent sinon reste sur la page d'ajout
-        de joueurs
+        affiche le joueur, retourne au menu du tournoi si tous les joueurs sont présents sinon reste sur la page
+        d'ajout de joueurs
         """
         self.app_messenger.accept_event(config.AppInput.PLAYER_FLAT_VIEW)
 
@@ -154,10 +156,10 @@ class TournamentC:
                                          tournament_id: int,
                                          partial_load: bool = False) -> tournament_model.TournamentM:
         """
-        Reçoit un tournament_id et le charge partiellement ou non en fonction de l'arguments reçu. Si rien n'est
-        précisé, le tournois est entièrement chargé.
+        Reçoit un tournament_id et le charge partiellement ou non en fonction de l'argument reçu. Si rien n'est
+        précisé, le tournoi est entièrement chargé.
         Un tournoi partiellement chargé ne contiens que les IDs des joueurs, matchs et tours.
-        Un tournoi entièrement chargé est constitué d'objets chargé en mémoire.
+        Un tournoi complètement chargé est constitué d'objets chargés en mémoire.
         """
         tournament = self.loader.load_tournament_data(tournament_id)
         player_list = list()
@@ -253,7 +255,7 @@ class TournamentC:
 
     def set_tournament_as_active(self, tournament_obj: tournament_model.TournamentM) -> None:
         """
-        Reçoit un objet tournois partiellement chargée, le charge entièrement, l'affiche et en affiche les contrôle
+        Reçoit un objet tournois partiellement chargé, le charge entièrement, l'affiche et en affiche les contrôle
         """
         active_tournament = self.load_tournament_by_tournament_id(tournament_obj.tournament_id)
         self.display_tournament(active_tournament)
@@ -271,7 +273,7 @@ class TournamentC:
         """
         Reçoit un objet tournoi, clôture le tour précédent, récupère le tour suivant,
         sauvegarde le tournoi.
-        Affiche le tournoi et ses contrôle s'il est terminée,
+        Affiche le tournoi et ses contrôles s'il est terminée,
         Affiche les contrôles du tour suivant si le tournoi est toujours en cours
         """
         self.app_messenger.send_event(config.AppInput.END_TURN, [tournament_obj.turn_list[-1]])
@@ -288,7 +290,7 @@ class TournamentC:
 
     def get_next_turn(self, tournament: tournament_model.TournamentM) -> turn_model.TurnM | bool:
         """
-        Reçoit un object tournoi, retourne le tour qui doit être joué pour progresser le tournoi si il est disponible,
+        Reçoit un object tournoi, retourne le tour qui doit être joué pour progresser le tournoi s'il est disponible,
         sinon retourne False
         """
         if tournament.turn_list and not tournament.turn_list[-1].finished:
@@ -320,7 +322,7 @@ class TournamentC:
                                tournament: tournament_model.TournamentM,
                                finished: bool = False) -> None:
         """
-        Reçoit un tournoi, déclare disponible et met à jour les événement lié au tournoi en cour et affiche les
+        Reçoit un tournoi, déclare disponible et met à jour les événement lié au tournoi en cours et affiche les
         contrôles des tours du tournoi
         """
         self.app_messenger.ignore_all()
@@ -347,7 +349,7 @@ class TournamentC:
 
     def start_or_resume_tournament(self, tournament: tournament_model.TournamentM) -> None:
         """
-        Reçoit un objet tournoi, vérifie s'il faut reprendre le tournoi en cour ou commencer ce nouveau tournoi
+        Reçoit un objet tournoi, vérifie s'il faut reprendre le tournoi en cours ou commencer ce nouveau tournoi
         """
         if len(tournament.turn_list) == 0:
             self.start_tournament(tournament)
@@ -387,7 +389,7 @@ class TournamentC:
 
     def view_tournament_details(self, tournament_obj: tournament_model.TournamentM) -> None:
         """
-        Reçoit un objet tournoi, génére l'affichage complet du déroulement du tournoi et l'affiche sur la
+        Reçoit un objet tournoi, génère l'affichage complet du déroulement du tournoi et l'affiche sur la
         vue principale de l'application.
         """
         self.app_messenger.accept_event(config.AppInput.MATCH_FLAT_VIEW)

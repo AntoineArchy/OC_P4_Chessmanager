@@ -24,7 +24,7 @@ class Messenger:
 
     def register_call_event(self,
                             event: config.AppInput | str,
-                            func: Callable,
+                            func: Callable or None,
                             event_str: str | None = None,
                             func_args: List | None = None) -> None:
         """Enregistre les événements et leurs noms éventuels. """

@@ -8,7 +8,7 @@ class ChessManager:
     def __init__(self):
         """
         Classe principale de l'application, initialise le core de l'application et les différents contrôleurs,
-        Est également résponsable de la boucle principale de l'application, voir run().
+        Est également responsable de la boucle principale de l'application, voir run().
         """
         self.messenger = messenger.Messenger()
         self.main_v = mainview.MainView()
@@ -42,14 +42,14 @@ class ChessManager:
 
     def register_user_input(self):
         """
-        Unique poit d'entrée des actions utilisateur;
-        Récupére la liste des événement enregistré, disponible et nommé auprès du messenger de l'application,
+        Unique poit d'entrée des actions utilisateur ;
+        Récupère la liste des événements enregistré, disponible et nommé auprès du messenger de l'application,
         en affiche une représentation sur la vue principale
-        retourne l'événement sélectionner par l'utilisateur.
+        retourne l'événement sélectionné par l'utilisateur.
         """
         allowed = self.messenger.get_allowed_event_and_str()
 
-        allowed_list = [(input_str, input) for input_str, input in allowed.items()]
+        allowed_list = [(input_str, allowed_input) for input_str, allowed_input in allowed.items()]
 
         registered = [allowed for allowed in allowed_list if isinstance(allowed[1], AppInput)]
         unregister = [allowed for allowed in allowed_list if allowed not in registered]
@@ -65,7 +65,7 @@ class ChessManager:
         Boucle principale de l'application.
         Tant que l'utilisateur ne choisit pas de quitter l'application :
             Affiche les élément en attente d'affichage sur la vue principale,
-            Récupére l'action utilisateurs,
+            Récupère l'action utilisateurs,
             Exécute l'action
             Recommence
         """

@@ -11,7 +11,7 @@ class MainView:
     Reçoit les informations à afficher de la part des différents contrôleurs ainsi que les formulaires à remplir.
 
     [Utilise actuellement questionary pour les formulaires et vérificateurs, pourrait être mis à jour pour
-    afficher un gui basique (ex: tkinter) sans modification des autres fichiers utiles au fonctionnement de
+    afficher un gui basique (ex : tkinter) sans modification des autres fichiers utiles au fonctionnement de
     l'application]
     """
 
