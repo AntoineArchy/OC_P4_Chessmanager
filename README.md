@@ -3,7 +3,7 @@ Le but de l'exercice est d'écrire une application destinée a géré les inform
 Cette application doit être développée en suivant les principes MVC (modèles, vues, contrôleurs).
 
 # Fonctionnement 
-L'application repose sur deux modules principaux : 'loader.py' et 'messenger.py'. Ces modules sont respectivement responsables de la sauvegarde/chargement des données et de l'exécution des instructions utilisateurs. Ces modules peuvent être considérés les modèles principaux de l'application.
+L'application repose sur deux modules principaux : 'tinydb_loader.py' et 'messenger.py'. Ces modules sont respectivement responsables de la sauvegarde/chargement des données et de l'exécution des instructions utilisateurs. Ces modules peuvent être considérés les modèles principaux de l'application.
 
 Le fichier main_view.py' est responsable de l'affichage de l'application et peut-être considéré comme la vue principale de l'application. 
 
