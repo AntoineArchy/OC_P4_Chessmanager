@@ -20,9 +20,9 @@ D'autres paramètres sont présents dans le fichier config.py et permettent de m
 ## 1) Créer l'environnement virtuel
 Ouvrez un terminal; 
 
-Pour ouvrir un terminal sur Windows, pressez  touche windows + r et entrez cmd.
+Pour ouvrir un terminal sur Windows, pressez  les touches windows + r et entrez cmd.
 
-Sur Mac, pressez touche command + espace et entrez "terminal".
+Sur Mac, pressez les touches command + espace et entrez "terminal".
 
 Sur Linux, vous pouvez ouvrir un terminal en pressant les touches Ctrl + Alt + T.
 
